@@ -1,0 +1,42 @@
+extends layout.pug
+block link
+      link(href='styles/style-register.css' rel='stylesheet')        
+block content
+ main.form-signin.m-auto.container.mt-5.w-100.position-relative(data-bs-theme="dark")
+   form.text-center.w-100(action="/register", method="post") 
+     img.mb-4.m-auto.postition-relative(src="img/logo.png" alt='' width='200' height='60')
+     h1.h3.mb-3.fw-normal Register
+     .input-group-vertical
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingEmail.input-top.form-control(type='email' placeholder='name@example.com' name="email" required)
+        label(for='floatingInput') Email 
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingnombre.input-mid.form-control(type='text' placeholder='nombre' name="nombre" required)
+        label(for='nombre') Nombre
+
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingApellido.input-mid.form-control(type='text' placeholder='apellido' name="apellido" required)
+        label(for='apellido') Apellido
+
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingDni.input-mid.form-control(type='dni' placeholder='dni' name="dni" required)
+        label(for='dni') Dni
+
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingPassword.input-mid.form-control(type='password' placeholder='Password' name="pass" required)
+        label(for='floatingPassword') Password
+      .form-floating.p-0.input-group-prepend.flex-column
+        input#floatingPassword2.input-bot.form-control(type='password' placeholder='Password' name="passAgain" required)
+        label(for='floatingPassword') Password Again
+     button.w-100.btn.btn-lg.btn-light.mt-3(type='submit' ) Register
+     - if (typeof alert !== "undefined")
+       script.
+         Swal.fire({
+           title: '#{alertTitle}',
+           text: '#{alertMessage}',
+           icon: '#{alertIcon}',
+           showConfirmButton: #{showConfirmButton},
+           timer: #{timer}
+         }).then(() => {
+           window.location = '/#{ruta}';
+         })

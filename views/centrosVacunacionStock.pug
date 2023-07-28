@@ -1,0 +1,102 @@
+extends layout.pug
+block link
+  link(href='styles/styleTablaLink.css' rel='stylesheet')  
+block scripts
+  script(defer src="scripts/alertas.js")  
+block content
+  main.form-signin.m-auto.px-5.my-5.w-100.position-relative(data-bs-theme="dark")
+    if resultado && resultado.length > 0
+      h1.h1.text-center Control Sublotes en Centros de Vacunacion
+      hr
+      .container.my-3 
+       h3.h3.text-center.mb-3 Datos de Sublotes en Centros de Vacunacion
+       form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/filtrarLotes", method="get" data-bs-theme="dark" )
+        .d-flex.gap-5.form-floating.mx-auto.col-5.text-center
+         select#provincia.form-select(name="provincia" required)
+          option(value="-") -
+          each optionValue in prov
+            option(value=optionValue)= optionValue
+         label.ms-2(for="provincia")  Provincia  
+
+        .d-flex.gap-5.form-floating.mx-auto.col-5.text-center
+         select#tipoVacuna.form-select(name="tipoVacuna" required)
+          option(value="-") -
+          each optionValue in tipoVac
+            option(value=optionValue)= optionValue
+         label.ms-2(for="tipoVacuna")  Tipo de Vacuna  
+        .d-flex.gap-5.form-floating.mx-auto.col-2.text-center.flex-wrap
+           button#btReset.btn.btn-primary.mx-auto(type="button" onclick="window.location.href = '/centrosStock';")
+            i.fa-solid.fa-filter &nbsp; Resetear Filtros
+        .d-flex.gap-5.form-floating.mx-auto.col-6.text-center.flex-wrap
+           button#btFilter.btn.btn-primary.mx-auto(type="submit")
+            i.fa-solid.fa-filter &nbsp; Filtrar 
+      
+        .form-check.p-0.form-switch.d-flex.col-12.flex-column
+           input#disponibleVac.form-check-input.larger-switch.mx-auto.mb-3(type="checkbox" name="disponibleVac"  value="true")    
+           label.form-check-label.mx-auto.mt-2(for="disponibleVac") Solo Disponible Para Vacunar 
+             
+        
+        
+      table.table.table-striped.text-center(data-bs-theme='dark')
+       thead.sticky-top(style="background-color: #343a40;")
+         tr
+           th Id Lote Centro
+           th Id Lote
+           th Id subLote
+           th Vacuna
+           th Nombre Comercial 
+           th Nombre Laboratorio
+           th Fecha de Fabricacion
+           th Fecha de Vencimiento
+           th Vencida  
+           th Centro 
+           th Cantidad de Vacunas
+           th Estado
+           th Fecha de Recepcion
+            
+       tbody
+         each item in resultado
+           tr
+             td= item.idLoteCentro
+             td= item.idLote
+             td= item.idSublote
+             td= item.tipoVacuna
+             td= item.nombreComercial 
+             td= item.nombreLaboratorio
+             td= item.fechaFabricacion   
+             td= item.fechaVencimiento   
+             td= item.vencida
+             td= `Centro ${item.idCentro}: ${item.provincia}-${item.ciudad}-${item.direccion}`
+             td= item.cantVacunas 
+             td(class=`${item.estado}`)= item.estado
+             if item.fechaRecepcion===null 
+              td(class="compra")= "Marcar Recepcion"      
+               form(id=`${item.idLoteCentro}` action=`/centrosStockPost/${item.idLoteCentro}`, method="post" data-bs-theme="dark" onsubmit=`return confirmarRecepcion(event)`) 
+                .input-group.mb-3
+                 input.form-control(type="date", name="fechaRecepcion" required) 
+                 button.btn.btn-success.btn-send(type='submit') 
+                  i.fa-solid.fa-check      
+           
+             else  
+              td=item.fechaRecepcion
+            
+      
+    - if (typeof alert !== "undefined")
+      script.
+        Swal.fire({
+          title: '#{alertTitle}',
+          text: '#{alertMessage}',
+          icon: '#{alertIcon}',
+          showConfirmButton: #{showConfirmButton},
+          timer: #{timer}
+        }).then(() => {
+          window.location = '/#{ruta}';
+        })
+
+    script.
+     const resultado = !{JSON.stringify(resultado)};
+     const prov = !{JSON.stringify(prov)};
+     const tipoVac = !{JSON.stringify(tipoVac)};
+     console.log(resultado)
+   
+     

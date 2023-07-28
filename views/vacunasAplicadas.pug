@@ -1,0 +1,166 @@
+extends layout.pug
+block link
+  link(href='styles/styleTablaLink.css' rel='stylesheet')  
+block scripts
+  script(defer src="scripts/alertas.js")  
+block content
+  main.my-5.w-100.position-relative(data-bs-theme="dark")
+    if resultado && resultado.length > 0
+      .container.my-5 
+         h1.h1.my-5.text-center.mb-3 Aplicaciones de Vacuna
+         hr
+         form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/filtrarAplicadas", method="get" data-bs-theme="dark" )
+          .d-flex.gap-5.form-floating.mx-auto.col-2.text-center
+           select#provincia.form-select(name="provincia" required)
+            option(value="-") -
+            each optionValue in [...new Set(localidad.map(aux => aux.provincia))]
+              option(value=optionValue)= optionValue
+           label.ms-2(for="provincia")  Provincia   
+          .d-flex.gap-5.form-floating.mx-auto.col-2.text-center
+           select#localidad.form-select(name="localidad" required)
+            option(value="-") -
+           label.ms-2(for="localidad")  Localidad    
+          .d-flex.gap-5.form-floating.mx-auto.col-2.text-center
+           select#tipoVacuna.form-select(name="tipoVacuna" required)
+            option(value="-") -
+            each optionValue in tipoVac
+              option(value=optionValue)= optionValue
+           label.ms-2(for="tipoVacuna")  Tipo de Vacuna  
+
+          .d-flex.gap-5.form-floating.mx-auto.col-4.text-center
+           select#centroVacunacion.form-select(name="centroId" required)
+            option(value="-") - 
+           label.ms-2(for="centroId")  Centro de Vacunacion 
+           
+          .d-flex.gap-5.form-floating.mx-auto.col-2.text-center.flex-wrap
+             button#btReset.btn.btn-primary.mx-auto(type="button" onclick="window.location.href = '/vacunasAplicadas';")
+              i.fa-solid.fa-filter &nbsp; Resetear Filtros
+          .d-flex.gap-5.form-floating.mx-auto.col-6.text-center.flex-wrap
+             button#btFilter.btn.btn-primary.mx-auto(type="submit")
+              i.fa-solid.fa-filter &nbsp; Filtrar 
+        
+          .form-check.p-0.form-switch.d-flex.col-12.flex-column
+             input#vencidas.form-check-input.larger-switch.mx-auto.mb-3(type="checkbox" name="vencidas"  value="true")    
+             label.form-check-label.mx-auto.mt-2(for="vencidas") Solo Vencidas 
+             
+
+      h3.h3.my-3.text-center Datos Completos de Las Aplicaciones
+      table.mx-1.table.table-striped.text-center(data-bs-theme='dark')
+       thead.sticky-top(style="background-color: #343a40;")
+         tr
+           th(scope="col") Id Lote
+           th(scope="col") Id Sublote Provincia
+           th(scope="col") Id Sublote Centro           
+           th(scope="col") Centro de Vacunacion
+           th(scope="col") Nombre Paciente
+           th(scope="col") Apellido Paciente
+           th(scope="col") DNI Paciente
+           th(scope="col") Genero Paciente
+           th(scope="col") Enfermero 
+           th(scope="col") Vacuna
+           th(scope="col") Nombre Comercial 
+           th(scope="col") Nombre Laboratorio
+           th(scope="col") Fecha de Fabricacion
+           th(scope="col") Fecha de Vencimiento
+           th(scope="col") Fecha de Aplicacion
+           th(scope="col") Vencida  
+           th(scope="col") Estado
+            
+       tbody
+         each item in resultado
+           tr
+             td= item.idLote   
+             td= item.idSubloteProv
+             td= item.idSubloteCentro
+             td= `Centro ${item.idCentro}: ${item.ciudad}, ${item.provincia}, (${item.direccion})`
+             td= item.pacienteNombre
+             td= item.pacienteApellido
+             td= item.pacienteDni
+             td= item.pacienteGenero
+             td= `Id: ${item.enfermeroId} - ${item.enfermero}`
+             td= item.vacuna
+             td= item.nombreComercial 
+             td= item.laboratorio
+             td= item.fechaFabricacion   
+             td= item.fechaVencimiento   
+             td= item.fechaAplicacion   
+             td= item.vencida
+             if item.estadoLote==="descartado" 
+              td(class="descartado")= "Descartado"
+             else  
+              td(class="enStock")= "OK"      
+            
+                        
+      
+    - if (typeof alert !== "undefined")
+      script.
+        Swal.fire({
+          title: '#{alertTitle}',
+          text: '#{alertMessage}',
+          icon: '#{alertIcon}',
+          showConfirmButton: #{showConfirmButton},
+          timer: #{timer}
+        }).then(() => {
+          window.location = '/#{ruta}';
+        })
+  
+    script.
+     const centroVacunacion = document.getElementById("centroVacunacion");
+     const provincias = document.getElementById("provincia");
+     const localidad = document.getElementById("localidad");
+     const resultado = !{JSON.stringify(resultado)};
+     const centros = !{JSON.stringify(centroVac)};
+     const localidades = !{JSON.stringify(localidad)};
+     const optionVacia = document.createElement("option");
+     console.log(localidades)
+     optionVacia.value = "-";
+     optionVacia.textContent = "-";
+     centroVacunacion.appendChild(optionVacia);
+     const optionVacia2 = document.createElement("option");
+     optionVacia2.value = "-";
+     optionVacia2.textContent = "-";
+     localidad.appendChild(optionVacia2);
+     
+   
+     provincias.addEventListener("change", () => {
+       localidad.innerHTML = "";
+       centroVacunacion.innerHTML = "";
+       const ciudadesAgregadas = {};
+       const optionVacia = document.createElement("option");
+       const optionVacia2 = document.createElement("option");
+       optionVacia.value = "-";
+       optionVacia.textContent = "-";
+       optionVacia2.value = "-";
+       optionVacia2.textContent = "-";
+       centroVacunacion.appendChild(optionVacia2);
+       localidad.appendChild(optionVacia);
+   
+       localidades.forEach((loc) => {
+         if (loc.provincia === provincias.value) {
+           const ciudad = loc.ciudad;
+           if (!ciudadesAgregadas[ciudad]) {
+             const option = document.createElement("option");
+             option.value = ciudad;
+             option.textContent = ciudad;
+             localidad.appendChild(option);
+             ciudadesAgregadas[ciudad] = true;
+           }
+         }
+       });
+     });
+   
+     localidad.addEventListener("change", () => {
+       const centrosAgregados = {};
+       centroVacunacion.innerHTML = "";
+       centroVacunacion.appendChild(optionVacia);
+   
+       centros.forEach((centro) => {
+         if (provincias.value === centro.provincia && !centrosAgregados[centro.idCentro]) {
+           const option = document.createElement("option");
+           option.value = centro.idCentro;
+           option.textContent = `${centro.idCentro}-${centro.ciudad},${centro.provincia} (${centro.direccion})`;
+           centroVacunacion.appendChild(option);
+           centrosAgregados[centro.idCentro] = true;
+         }
+       });
+     });

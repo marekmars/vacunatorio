@@ -1,0 +1,31 @@
+extends layout.pug
+block link
+      link(href='styles/style.css' rel='stylesheet')        
+block content
+ main.form-signin.m-auto.container.mt-5.w-100.position-relative(data-bs-theme="dark")
+   form.text-center.w-100(action="/login", method="post") 
+     img.mb-4.m-auto.postition-relative(src="img/logo.png" alt='' width='200' height='60')
+     h1.h3.mb-3.fw-normal Login
+     .form-floating
+       input#floatingInput.form-control(type='email' placeholder='name@example.com' name="email")
+       label(for='floatingInput') Email 
+     .form-floating
+       input#floatingPassword.form-control(type='password' placeholder='Password' name="pass")
+       label(for='floatingPassword') Password
+     button.w-100.btn.btn-lg.btn-light.mt-3(type='submit') Sign in
+     h5.mt-1 No tenes cuenta? 
+      a.nav-item(href="/register") Registrate
+
+     - if (typeof alert !== "undefined")
+       script.
+         Swal.fire({
+           title: '#{alertTitle}',
+           text: '#{alertMessage}',
+           icon: '#{alertIcon}',
+           showConfirmButton: #{showConfirmButton},
+           timer: #{timer}
+         }).then(() => {
+           window.location = '/#{ruta}';
+         })
+  
+     

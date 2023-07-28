@@ -1,0 +1,109 @@
+extends layout
+
+block scripts
+  script(defer src="scripts/alertas.js")
+
+block content
+
+  main.m-auto.container.mt-5.w-100.position-relative(data-bs-theme="dark")  
+    h1.h1.text-center Comprar Vacunas
+    hr
+    .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-8.text-center
+        h3.h3.mx-auto Datos de la Compra 
+    form#compraForm.form.row.g-3.w-100.mx-auto.mt-2(action="/compra", method="post" data-bs-theme="dark" onsubmit=`return confirmarCompra(event)`)
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+        select#tipoVacuna.form-select(name="tipoVacuna")
+          option(value="-") -
+          each optionValue, optionLabel in [...new Set(resultado.map(v => v.tipoVacuna))]
+            option(value=optionValue)= optionValue
+        label(for="tipoVacuna")  Tipo de Vacuna 
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+        select#laboratorio.form-select(name="laboratorio" disabled)
+          option(value="") Selecciona un laboratorio
+        label(for="laboratorio")  Laboratorio 
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+       input#nombreComercial.form-control(name="nombreComercial" disable)
+       label(for="nombreComercial")  Nombre Comercial
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+       input#paisOrigen.form-control(name="paisOrigen" disable )
+       label(for="paisOrigen")  Pais de Origen
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+       input#cantidadVacunas.form-control(name="cantidadVacunas" type="number")
+       label(for="paisOrigen")  Cantidad de Vacunas
+      .mb-3.form-floating.d-flex.justify-content-center.mx-auto.col-12.col-md-12
+        select#depositos.form-select(name="deposito")
+          option(value="-") -
+          each optionValue, optionLabel in resultadoDepo
+            option(value=optionValue.idDepoNacion)= `Deposito: ${optionValue.idDepoNacion} - ${optionValue.provincia} - ${optionValue.ciudad} (${optionValue.direccion}) ` 
+        label(for="deposito")  Depocitos Nacion 
+      input#idVacuna(type="hidden" name="idVacuna")    
+      .btn-form.d-flex
+        button.btn.btn-primary.mx-auto(type='submit') 
+         i.fa-solid.fa-cart-shopping &nbsp; Comprar
+
+      - if (typeof alert !== "undefined")
+        script.
+          Swal.fire({
+            title: '#{alertTitle}',
+            text: '#{alertMessage}',
+            icon: '#{alertIcon}',
+            showConfirmButton: #{showConfirmButton},
+            timer: #{timer}
+          }).then(() => {
+            window.location = '/#{ruta}';
+          })
+
+  script.
+    const resultado = !{JSON.stringify(resultado)};
+    console.log(resultado)
+    const tipoVacunaSelect = document.getElementById('tipoVacuna');
+    const laboratorioSelect = document.getElementById('laboratorio');
+    const paisOrigen = document.getElementById('paisOrigen');
+    const nombreComercial = document.getElementById('nombreComercial');
+    const idVacuna = document.getElementById('idVacuna');
+    
+    tipoVacunaSelect.addEventListener('change', () => {
+      const tipoVacuna = tipoVacunaSelect.value;
+      paisOrigen.value=""
+      nombreComercial.value=""
+      const laboratorios =[]
+
+      resultado.forEach(resu=>{
+        if(resu.tipoVacuna===tipoVacuna){
+            laboratorios.push(resu.nombreLaboratorio)
+         }    
+        })
+    console.log(laboratorios)
+      laboratorioSelect.innerHTML = '';
+      const optionVacia = document.createElement('option');
+        optionVacia.value = "-";
+        optionVacia.textContent = "-";
+        laboratorioSelect.appendChild(optionVacia);
+      laboratorios.forEach(lab => {
+        const option = document.createElement('option');
+        option.value = lab;
+        option.textContent = lab;
+        laboratorioSelect.appendChild(option);     
+      });
+      
+      laboratorioSelect.disabled = false;
+    });
+
+    laboratorioSelect.addEventListener('change', () => {
+        paisOrigen.value=""
+        nombreComercial.value=""
+      const tipoVacuna = tipoVacunaSelect.value;
+      const lab = laboratorioSelect.value;
+      resultado.forEach(resu=>{
+        if(resu.tipoVacuna===tipoVacuna&&resu.nombreLaboratorio===lab){
+            paisOrigen.value=resu.paisOrigen
+            nombreComercial.value=resu.nombreComercial
+            idVacuna.value=resu.idVacuna
+            console.log(idVacuna.value)
+         }    
+        })
+     paisOrigen.disabled=true;
+     nombreComercial.disabled=true;
+
+    });
+ 

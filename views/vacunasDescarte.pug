@@ -1,0 +1,326 @@
+extends layout.pug
+block link
+  link(href='styles/styleTablaLink.css' rel='stylesheet')  
+block scripts
+  script(defer src="scripts/alertas.js")  
+block content
+  main.form-signin.m-auto.container.mt-5.w-100.position-relative(data-bs-theme="dark")
+      h1.h1.text-center.mb-5 Descarte de Vacunas
+      hr
+      .d-flex.my-3.form-floating.justify-content.align-items-center.mx-auto.col-8.text-center
+        h3.h3.mx-auto Lotes Vencidos No Descartados 
+      form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/filtrarVencidas", method="get" data-bs-theme="dark" )
+       .d-flex.gap-5.form-floating.mx-auto.col-3.text-center
+        select#provincia.form-select(name="provincia" required)
+         option(value="-") -
+         each optionValue in prov
+           option(value=optionValue)= optionValue
+        label.ms-2(for="provincia")  Provincia    
+       .d-flex.gap-5.form-floating.mx-auto.col-3.text-center
+        select#tipoVacuna.form-select(name="tipoVacuna" required)
+         option(value="-") -
+         each optionValue in tipoVac
+           option(value=optionValue)= optionValue
+        label.ms-2(for="tipoVacuna")  Tipo de Vacuna   
+       .d-flex.gap-5.form-floating.mx-auto.col-4.text-center
+        select#centroVacunacion.form-select(name="centroId" required )
+         option(value="-") -
+        label.ms-2(for="centroId")  Centro de Vacunacion 
+        
+       .d-flex.gap-5.form-floating.mx-auto.col-2.text-center.flex-wrap
+          button#btReset.btn.btn-primary.mx-auto(type="button" onclick="window.location.href = '/vacunasDescarte';")
+           i.fa-solid.fa-filter &nbsp; Resetear Filtros
+       .d-flex.gap-5.form-floating.mx-auto.col-6.text-center.flex-wrap
+          button#btFilter.btn.btn-primary.mx-auto(type="submit")
+           i.fa-solid.fa-filter &nbsp; Filtrar 
+      
+      if vencidas 
+       table.my-4.mx-1.table.table-striped.text-center(data-bs-theme='dark')
+        thead.sticky-top(style="background-color: #343a40;")
+          tr
+            th(scope="col") Id Lote         
+            th(scope="col") Centro de Vacunacion
+            th(scope="col") Vacuna
+            th(scope="col") Nombre Comercial 
+            th(scope="col") Nombre Laboratorio
+            th(scope="col") Fecha de Fabricacion
+            th(scope="col") Fecha de Vencimiento 
+             
+        tbody
+          each item in vencidas
+            tr
+              td= item.idLote   
+              td= `${item.idCentro}-${item.ciudad},${item.provincia} (${item.direccion})`
+              td= item.vacuna
+              td= item.nombreComercial 
+              td= item.laboratorio
+              td= item.fechaFabricacion   
+              td= item.fechaVencimiento   
+              td= item.fechaAplicacion   
+             
+
+      
+      form#recurso.my-3.form.form-floting.row.g-3.w-100.mx-auto(action="/descartarVencidas", method="post" data-bs-theme="dark" onsubmit=`return confirmarDescarteVencidas(event)`)
+       .d-flex.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center.flex-
+           button.btn.btn-danger.mx-auto 
+            i.mt-3.fa-solid.fa-trash-can.fa-xl &nbsp; Descartar Todas Las Vacunas Vencidas 
+      hr 
+      .d-flex.my-3.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center
+        h3.h3.mx-auto Descartar Vacunas Por Lote    
+      form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/vacunasDescarte", method="post" data-bs-theme="dark" onsubmit=`return confirmarAplicacion(event)`)     
+       .form-check.form-switch.d-flex.col-4.flex-column
+        label.form-check-label.h4.mx-auto(for="loteNacion") Lote Nacion
+        input#radioLoteCompleto.form-check-input.larger-switch.mx-auto(type="radio" name="lote"  value="loteNacion")      
+       .form-check.form-switch.d-flex.col-4.flex-column
+        label.form-check-label.h4.mx-auto(for="loteProvincia") Lote Provincia
+        input#radiotLoteProvincia.form-check-input.larger-switch.mx-auto(type="radio" name="lote"  value="loteProvincia")
+       .form-check.form-switch.d-flex.col-4.flex-column
+        label.form-check-label.h4.mx-auto(for="loteCentro") Lote Centro
+        input#radioLoteCentro.form-check-input.larger-switch.mx-auto(type="radio" name="lote"  value="loteCentro")     
+       .d-flex.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center
+        select#loteSelect.form-select(name="loteSelect" required)    
+        label#loteSelectLabel.ms-2(for="loteSelect")         
+       .d-flex.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center        
+        input#motivo.form-control(name="motivo" type="text" placeholder="sds"  required)
+        label.ms-2(for="motivo")  Motivo de Descarte 
+       - const fechaActual = new Date().toISOString().split('T')[0]
+       .d-flex.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center
+         input#fechaDescarte.form-control(name="fechaDescarte" type="date" placeholder="sds" required max=fechaActual)
+         label.ms-2(for="fechaDescarte") Fecha de Descarte
+       .card.border.border-secondary.shadow-0.text-white.col-12.mx-auto.p-0.mb-5(style='background-color:#202124;')
+        .card-header.text-center 
+         h3.mx-0.my-2 Datos Lote
+        .card-body
+          #vacuna.card-text.fs-4.text-primary Tipo de Vacuna:
+          #nombreComercial.card-text.fs-4.text-primary Nombre Comercial:
+          #laboratorio.card-text.fs-4.text-primary Laboratorio:
+          #origen.card-text.fs-4.text-primary Origen:
+          #FechaFabricacion.card-text.fs-4.text-primary Fecha de Fabricacion:
+          #FechaVencimiento.card-text.fs-4.text-primary Fecha de Vencimiento:
+          #FechaAdquisicion.card-text.fs-4.text-primary Fecha de Adquisicion:
+        .d-flex.justify-content-center.card-footer
+         .form-check.form-switch.d-flex.col-4.flex-column
+           label.form-check-label.h5.mx-auto.mt-2(for="lotesInferiores") Descarta Lotes inferiores
+           input#lotesInferiores.form-check-input.larger-switch.mx-auto.mb-3(type="checkbox" name="lotesInferiores"  value="true")    
+           button.btn.btn-danger.mx-auto.my-2   
+            i.mt-3.fa-solid.fa-trash-can.fa-xl &nbsp; Descartar
+        
+       
+  script.
+   const loteNacion=!{JSON.stringify(resultadoLoteProvedor)};
+   const loteProv = !{JSON.stringify(resultadoProvStock)};
+   const loteCentro = !{JSON.stringify(resultadoCentroStock)};
+   const radioLoteCompleto = document.getElementById('radioLoteCompleto');
+   const radioLoteProvincia = document.getElementById('radiotLoteProvincia');
+   const radioLoteCentro = document.getElementById('radioLoteCentro');
+   const lotesInferiores = document.getElementById('lotesInferiores');
+   const loteSelect = document.getElementById('loteSelect');
+   const loteSelectLabel = document.getElementById('loteSelectLabel');
+   const fechaDescarte = document.getElementById('fechaDescarte');
+   const optionVacia = document.createElement('option');
+
+   let loteAuxiliar
+   optionVacia.value= "-"
+   optionVacia.textContent= "-"
+   loteSelect.appendChild(optionVacia)
+
+   const vacuna = document.getElementById('vacuna');
+   const nombreComercial = document.getElementById('nombreComercial');
+   const laboratorio = document.getElementById('laboratorio');
+   const origen = document.getElementById('origen');
+   const FechaFabricacion = document.getElementById('FechaFabricacion');
+   const FechaVencimiento = document.getElementById('FechaVencimiento');
+   const FechaAdquisicion = document.getElementById('FechaAdquisicion');
+
+   const vacunaP = document.createElement('p');
+   vacunaP.classList.add("fs-5","text-light")
+   vacuna.appendChild(vacunaP)
+   const nombreComercialP = document.createElement('p')
+   nombreComercialP.classList.add("fs-5","text-light")
+   nombreComercial.appendChild(nombreComercialP)
+   const laboratorioP = document.createElement('p')
+   laboratorioP.classList.add("fs-5","text-light")
+   laboratorio.appendChild(laboratorioP)
+   const origenP = document.createElement('p')
+   origenP.classList.add("fs-5","text-light")
+   origen.appendChild(origenP)
+   const FechaFabricacionP = document.createElement('p')
+   FechaFabricacionP.classList.add("fs-5","text-light")
+   FechaFabricacion.appendChild(FechaFabricacionP)
+   const FechaVencimientoP = document.createElement('p')
+   FechaVencimientoP.classList.add("fs-5","text-light")
+   FechaVencimiento.appendChild(FechaVencimientoP)
+   const FechaAdquisicionP = document.createElement('p')
+   FechaAdquisicionP.classList.add("fs-5","text-light")
+   FechaAdquisicion.appendChild(FechaAdquisicionP)
+
+
+
+   loteSelectLabel.textContent= 'Lote Nacion'
+
+   radioLoteCompleto.addEventListener('change', () => {
+    lotesInferiores.disabled=false
+    lotesInferiores.checked=false
+     loteSelect.innerHTML=''
+     optionVacia.value= "-"
+     optionVacia.textContent= "-"
+     vacunaP.innerText="" 
+     nombreComercialP.innerText=""
+     laboratorioP.innerText=""
+     origenP.innerText=""
+     FechaFabricacionP.innerText=""
+     FechaVencimientoP.innerText=""
+     FechaAdquisicionP.innerText=""
+     loteSelect.appendChild(optionVacia)
+     loteSelectLabel.textContent = 'Lote Nacion';
+     loteNacion.forEach(lote=>{
+        const option = document.createElement('option');
+        option.value= lote.idLote
+        option.textContent= `Lote: ${lote.idLote}`
+        loteSelect.appendChild(option)
+     })
+   });
+   
+   radioLoteProvincia.addEventListener('change', () => {
+    lotesInferiores.disabled=false
+    lotesInferiores.checked=false
+     loteSelectLabel.textContent = 'Lote Provincia';
+     loteSelect.innerHTML=''
+     optionVacia.value= "-"
+     optionVacia.textContent= "-"
+     vacunaP.innerText="" 
+     nombreComercialP.innerText=""
+     laboratorioP.innerText=""
+     origenP.innerText=""
+     FechaFabricacionP.innerText=""
+     FechaVencimientoP.innerText=""
+     FechaAdquisicionP.innerText=""
+     loteSelect.appendChild(optionVacia)
+     loteSelectLabel.textContent = 'Lote Nacion';
+     loteProv.forEach(lote=>{
+        const option = document.createElement('option');
+        option.value= lote.idProvStock
+        option.textContent= `Sublote: ${lote.idProvStock}`
+        loteSelect.appendChild(option)
+     })
+     
+   });
+   
+   radioLoteCentro.addEventListener('change', () => {
+     lotesInferiores.disabled=true
+     lotesInferiores.checked=false
+     loteSelectLabel.textContent = 'Lote Centro';
+     loteSelectLabel.textContent = 'Lote Provincia';
+     loteSelect.innerHTML=''
+     optionVacia.value= "-"
+     optionVacia.textContent= "-"
+     vacunaP.innerText="" 
+     nombreComercialP.innerText=""
+     laboratorioP.innerText=""
+     origenP.innerText=""
+     FechaFabricacionP.innerText=""
+     FechaVencimientoP.innerText=""
+     FechaAdquisicionP.innerText=""
+     loteSelect.appendChild(optionVacia)
+     loteSelectLabel.textContent = 'Lote Nacion';
+     loteCentro.forEach(lote=>{
+        const option = document.createElement('option');
+        option.value= lote.idCentroStock
+        option.textContent= `Sublote: ${lote.idCentroStock}`
+        loteSelect.appendChild(option)
+     })
+    
+
+   });
+
+   loteSelect.addEventListener('change', () => {
+    lotesInferiores.disabled=false
+    lotesInferiores.checked=false
+      vacunaP.innerText="" 
+      nombreComercialP.innerText=""
+      laboratorioP.innerText=""
+      origenP.innerText=""
+      FechaFabricacionP.innerText=""
+      FechaVencimientoP.innerText=""
+      FechaAdquisicionP.innerText=""
+    if(radioLoteCompleto.checked){    
+      loteAuxiliar= loteNacion.filter(lote => lote.idLote==loteSelect.value);
+      console.log(loteAuxiliar)
+      vacunaP.innerText=loteAuxiliar[0].vacuna
+      nombreComercialP.innerText=loteAuxiliar[0].nombreComercial
+      laboratorioP.innerText=loteAuxiliar[0].laboratorio
+      origenP.innerText=loteAuxiliar[0].origen
+      FechaFabricacionP.innerText=loteAuxiliar[0].fechaFabricacion
+      FechaVencimientoP.innerText=loteAuxiliar[0].fechaVencimiento
+      FechaAdquisicionP.innerText=loteAuxiliar[0].fechaAquisicion!==null?loteAuxiliar[0].fechaAquisicion:"No Adquirida"
+      fechaDescarte.setAttribute('min', loteAuxiliar[0].fechaAquisicion)
+    }else if(radioLoteProvincia.checked){  
+      console.log(loteSelect.value)
+      loteAuxiliar= loteProv.filter(lote => lote.idProvStock==loteSelect.value); 
+      console.log(loteAuxiliar) 
+      vacunaP.innerText=loteAuxiliar[0].vacuna
+      nombreComercialP.innerText=loteAuxiliar[0].nombreComercial
+      laboratorioP.innerText=loteAuxiliar[0].laboratorio
+      origenP.innerText=loteAuxiliar[0].origen
+      FechaFabricacionP.innerText=loteAuxiliar[0].fechaFabricacion
+      FechaVencimientoP.innerText=loteAuxiliar[0].fechaVencimiento
+      FechaAdquisicionP.innerText=loteAuxiliar[0].fechaAquisicion!==null?loteAuxiliar[0].fechaAquisicion:"No Adquirida"
+      fechaDescarte.setAttribute('min', loteAuxiliar[0].fechaAquisicion)
+    }else if(radioLoteCentro.checked){ 
+      loteAuxiliar= loteCentro.filter(lote => lote.idCentroStock==loteSelect.value);   
+      vacunaP.innerText=loteAuxiliar[0].vacuna
+      nombreComercialP.innerText=loteAuxiliar[0].nombreComercial
+      laboratorioP.innerText=loteAuxiliar[0].laboratorio
+      origenP.innerText=loteAuxiliar[0].origen
+      FechaFabricacionP.innerText=loteAuxiliar[0].fechaFabricacion
+      FechaVencimientoP.innerText=loteAuxiliar[0].fechaVencimiento
+      FechaAdquisicionP.innerText=loteAuxiliar[0].fechaAquisicion!==null?loteAuxiliar[0].fechaAquisicion:"No Adquirida"
+      fechaDescarte.setAttribute('min', loteAuxiliar[0].fechaAquisicion)
+    }
+   })
+   
+     const centroVacunacion=document.getElementById("centroVacunacion");
+     const provincias=document.getElementById("provincia");
+     const centros=!{JSON.stringify(centroVac)};
+     const optionVacia5=document.createElement("option")
+      optionVacia5.value= "-"
+      optionVacia5.textContent= "-"
+      centroVacunacion.appendChild(optionVacia5)
+     provincias.addEventListener('change', () => {
+      const optionVacia5=document.createElement("option") 
+      centroVacunacion.innerHTML=''
+      optionVacia5.value= "-"
+      optionVacia5.textContent= "-"
+      centroVacunacion.appendChild(optionVacia5)
+   
+      
+      
+      centros.forEach((centro)=>{
+        
+        if(provincias.value===centro.provincia){
+          const option=document.createElement("option")
+          option.value=centro.idCentro
+          option.textContent=`${centro.idCentro}-${centro.ciudad},${centro.provincia} (${centro.direccion})`
+          centroVacunacion.appendChild(option)
+          
+        }
+      })
+       
+     })
+
+
+   
+
+ 
+       
+  - if (typeof alert !== "undefined")
+        script.
+          Swal.fire({
+            title: '#{alertTitle}',
+            text: '#{alertMessage}',
+            icon: '#{alertIcon}',
+            showConfirmButton: #{showConfirmButton},
+            timer: #{timer}
+          }).then(() => {
+            window.location = '/#{ruta}';
+          })

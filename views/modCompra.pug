@@ -1,0 +1,110 @@
+extends layout.pug
+block link
+  link(href='styles/styleTablaLink.css' rel='stylesheet')  
+block scripts
+  script(defer src="scripts/alertas.js")  
+block content
+  main.form-signin.m-auto.px-5.my-5.w-100.position-relative(data-bs-theme="dark")
+    if resultado && resultado.length > 0
+      h1.h1.text-center Control Lote-Provedor Nacion
+      hr
+      .container.my-5 
+       .d-flex.my-3.form-floating.justify-content.align-items-center.mx-auto.col-8.text-center
+        h3.h3.mx-auto Datos de los Lotes Comprados 
+       form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/filtrarCompras", method="get" data-bs-theme="dark")
+        .d-flex.gap-5.form-floating.justify-content-nalign-items-center.mx-auto.col-4.text-center
+         select#laboratorios.form-select(name="laboratorios" required)
+         label.ms-2(for="laboratorios")  Laboratorios  
+        .d-flex.gap-5.form-floating.justify-content-nalign-items-center.mx-auto.col-3.text-center       
+         input#fechainicio.form-control(name="fechainicio" type="date" placeholder="sds" max=new Date().toISOString().split("T")[0])
+         label.ms-2(for="fechainicio")  Fecha de Inicio  
+        .d-flex.gap-5.form-floating.justify-content-nalign-items-center.mx-auto.col-3.text-center      
+         input#fechafin.form-control(name="fechafin" type="date" placeholder="sds" max=new Date().toISOString().split("T")[0])
+         label.ms-2(for="fechafin") Fecha Fin
+        .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-2.text-center.flex-wrap
+           button#btReset.btn.btn-primary.mx-auto(type="button" onclick="window.location.href = '/modCompra';" )
+            i.fa-solid.fa-filter &nbsp; Resetear Filtros
+        .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-6.text-center.flex-wrap
+           button.btn.btn-primary.mx-auto(type="submit")
+            i.fa-solid.fa-filter &nbsp; Filtrar 
+      table.table.table-striped.text-center(data-bs-theme='dark')
+       thead.sticky-top(style="background-color: #343a40;")
+         tr
+           th Id Lote
+           th Vacuna
+           th Nombre Comercial 
+           th Nombre Laboratorio
+           th Origen 
+           th Estado  
+           th Deposito 
+           th Cantidad de Vacunas
+           th Fecha de Compra
+           th Fecha de Adquisicion 
+       tbody
+         each item in resultado
+           tr
+             td= item.idLote
+             td= item.tipoVacuna
+             td= item.nombreComercial 
+             td= item.nombreLaboratorio
+             td= item.paisOrigen
+             if !item.fechaAdquisicion 
+              td(class="enViaje")= "Marcar Recepcion"      
+               form(id=`${item.id}` action=`/loteEstado/${item.idLote}`, method="post" data-bs-theme="dark" onsubmit=`return confirmarRecepcion(event)`) 
+                .input-group.mb-3
+                 input.form-control(type="date", name="fechaAdquisicion" required) 
+                 button.btn.btn-success.btn-send(type='submit') 
+                  i.fa-solid.fa-check  
+             else  
+              td(class=`${item.estado}`)= item.estado    
+             td= item.deposito
+             td= item.cantVacunas 
+             td= item.fechaCompra
+             if item.fechaAdquisicion===null
+              td(class=`${item.estado}`)= "En Viaje" 
+             else  
+              td= item.fechaAdquisicion             
+  
+  
+    script.
+     const resultado = !{JSON.stringify(resultado)};
+     const resultadoTodos = !{JSON.stringify(resultadoTodos)};
+     console.log(resultadoTodos)
+     const laboratoriosSelect = document.getElementById("laboratorios") 
+     const opcionVacia = document.createElement("option") 
+     const setLabs = new Set()
+     opcionVacia.textContent="-"
+     opcionVacia.value="-"
+     laboratoriosSelect.appendChild(opcionVacia)
+
+     if(resultadoTodos){
+      resultadoTodos.forEach(resu=>{
+      
+      setLabs.add(resu.nombreLaboratorio)
+     })
+     }else{
+      resultado.forEach(resu=>{
+      
+      setLabs.add(resu.nombreLaboratorio)
+     })
+     }
+
+     setLabs.forEach(labs=>{
+      const option = document.createElement("option")
+      
+      option.value=labs
+      option.textContent=labs
+      laboratoriosSelect.appendChild(option)
+     })
+   
+    - if (typeof alert !== "undefined")
+      script.
+        Swal.fire({
+          title: '#{alertTitle}',
+          text: '#{alertMessage}',
+          icon: '#{alertIcon}',
+          showConfirmButton: #{showConfirmButton},
+          timer: #{timer}
+        }).then(() => {
+          window.location = '/#{ruta}';
+        })
