@@ -64,7 +64,7 @@ module.exports = {
     userName = req.session.user.correo;
     loginlogoutName = "Logout";
     loginlogoutLink = "/logout";
-
+    console.log(req.body)
     try {
       const loteprovedor = await Loteprovedor.findAll({
         include: [

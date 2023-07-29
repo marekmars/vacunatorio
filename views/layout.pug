@@ -50,6 +50,15 @@ html(lang="es")
                    li
                      a.dropdown-item(href='/centrosStock') Control Stock Centros
                li.nav-item.dropdown
+                 a.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false') Centros y Depocitos
+                 ul.dropdown-menu
+                   li
+                     a.dropdown-item(href='/agregarCentro') Agregar un Centro de Vacunacion
+                   li
+                     a.dropdown-item(href='/agregarDepoNacion') Agregar un Deposito Nacional
+                   li
+                     a.dropdown-item(href='/agregarDepoProvincia') Agregar un Deposito Provincial
+               li.nav-item.dropdown
                  a.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false') Informacion
                  ul.dropdown-menu
                    li

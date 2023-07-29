@@ -73,8 +73,13 @@ block content
        .d-flex.gap-5.text-center.form-floating.justify-content-center.align-items-center.mx-auto.col-12.text-center
         h3.m-3 Datos del Enfermero 
        .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center        
-        select#enfermeros.form-select(name="enfermero" required)
-        label.ms-2(for="enfermero")  Enfermeros 
+        select#enfermeros.form-select(name="enfermero" required disabled)
+        label.ms-2(for="enfermero")  Enfermeros
+        p *Si no existen agregar uno
+       .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-12.text-center     
+        input#nombreEnfermero.form-control(name="nombreEnfermero" type="text" placeholder="sds"  )
+        label.ms-2(for="nombreEnfermero")  Nombre de Enfermero
+   
        .d-flex.gap-5.form-floating.justify-content.align-items-center.mx-auto.col-11.text-center.fle-wrap
            button.btn.btn-primary.mx-auto.mb-5
             i.fa-solid.fa-syringe &nbsp; Aplicar
@@ -90,6 +95,7 @@ block content
    const enfermerosSelect = document.getElementById('enfermeros');
    const cantVacunas = document.getElementById('cantVacunas');
    const fechaAplicacion = document.getElementById('fechaAplicacion');
+   const nombreEnfermero = document.getElementById('nombreEnfermero');
    cantVacunas.value=""
 
    provinciaSelect.addEventListener('change', () => {
@@ -145,14 +151,14 @@ block content
     optionVacia.textContent = "-";
     cantVacunas.value=""
     const optionVacia2 = document.createElement("option");
-    optionVacia.value = "-";
-    optionVacia.textContent = "-";
+    optionVacia2.value = "-";
+    optionVacia2.textContent = "-";
     const optionVacia3 = document.createElement("option");
-    optionVacia.value = "-";
-    optionVacia.textContent = "-";
+    optionVacia3.value = "-";
+    optionVacia3.textContent = "-";
     const optionVacia4 = document.createElement("option");
-    optionVacia.value = "-";
-    optionVacia.textContent = "-";
+    optionVacia4.value = "-";
+    optionVacia4.textContent = "-";
     vacunasSelect.innerHTML = '';
     vacunasSelect.appendChild(optionVacia)
     vacunasSelect.disabled= true 
@@ -165,6 +171,7 @@ block content
     subloteSelect.innerHTML = '';
     subloteSelect.appendChild(optionVacia4)
     subloteSelect.disabled= true 
+   
     
     const vacunasSet = new Set()  
     resultado.forEach(centro => {     
@@ -175,6 +182,8 @@ block content
     enfermeros.forEach(enfermero=>{
         if(enfermero.idCentro==centrosSelect.value){
             enfermerosSelect.disabled= false 
+            
+            
             const option = document.createElement("option");
             option.value = enfermero.idEnfermero
             option.textContent = `Id: ${enfermero.idEnfermero} - Nombre: ${enfermero.nombre}`
@@ -255,6 +264,17 @@ block content
       cantVacunas.value = ""
       const cantidadVacunas=resultado.find((centro) => centro.id == subloteSelect.value).cantVacunas
       cantVacunas.value = cantidadVacunas;  
+      
+    }) 
+
+    enfermerosSelect.addEventListener('change', () => {
+      if(!enfermerosSelect||enfermerosSelect.value==="-"){
+
+       nombreEnfermero.disabled=false
+      } else{
+        nombreEnfermero.value=""
+        nombreEnfermero.disabled=true
+      }
       
     }) 
        

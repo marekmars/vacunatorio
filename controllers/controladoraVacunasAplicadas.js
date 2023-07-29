@@ -189,6 +189,8 @@ module.exports = {
     const body = req.body;
     let idPaciente;
     let idLocalidad;
+    let idEnfermero;
+    console.log(body)
 
     if (
       body.provincia !== "-" &&
@@ -225,7 +227,7 @@ module.exports = {
             alertIcon: "error",
             showConfirmButton: true,
             timer: false,
-            ruta: "descarteVacunas",
+            ruta: "vacunasDescarte",
           });
           return;
         } else if (centroStock.estado === "enStock") {
@@ -262,16 +264,27 @@ module.exports = {
           } else {
             idPaciente = pacienteBusc.idPaciente;
           }
+          if (body.nombreEnfermero) {
+            const enferemero = await Enfermero.create({
+              nombre: body.nombreEnfermero,
+              idCentro: body.centro,
+            });
+            console.log("enferemero.idEnfermero");
+            console.log(enferemero.idEnfermero);
+            idEnfermero = enferemero.idEnfermero;
+          } else {
+            console.log("NO HAY ENFEREMRO")
+            idEnfermero = body.enfermero;
+          }
           console.log("PASO");
           const vacunaAplicada = await VacunasAplicadas.create({
             idLote: body.lote,
             idLoteCentro: body.sublote,
             fechaAplicacion: body.fechaAplicacion,
             idPaciente: idPaciente,
-            idEnfermero: body.enfermero,
+            idEnfermero: idEnfermero,
             idCentro: body.centro,
           });
-       
 
           centroStock.cantVacunas = centroStock.cantVacunas - 1;
           if (centroStock.cantVacunas === 0) {
@@ -379,7 +392,6 @@ module.exports = {
         ],
       });
 
-  
       const resultado = vacunasAplicadas.map((aplicacion) => {
         return {
           idAplicacion: aplicacion.id,
@@ -441,7 +453,7 @@ module.exports = {
       const centroVac = Array.from(centrosVacSet).map((jsonString) =>
         JSON.parse(jsonString)
       );
-     
+
       res.render("vacunasAplicadas", {
         userName,
         loginlogoutLink,
@@ -465,7 +477,7 @@ module.exports = {
     const centroId = req.query.centroId;
     const vencidas = req.query.vencidas;
     const ciudad = req.query.localidad;
-    
+
     console.log("provincia");
     console.log(provincia);
     console.log("tipoVacuna");
@@ -476,17 +488,17 @@ module.exports = {
     console.log(vencidas);
     console.log("localidad");
     console.log(ciudad);
-    console.log("====================================")
-    console.log("====================================")
+    console.log("====================================");
+    console.log("====================================");
     console.log(req.query);
-    console.log("====================================")
-    console.log("====================================")
+    console.log("====================================");
+    console.log("====================================");
 
     try {
       if (
         provincia.trim().length > 0 &&
         tipoVacuna.trim().length > 0 &&
-        centroId.trim().length > 0&&
+        centroId.trim().length > 0 &&
         ciudad.trim().length
       ) {
         const vacunasAplicadas = await VacunasAplicadas.findAll({
@@ -536,7 +548,6 @@ module.exports = {
           ],
         });
 
-      
         const resultadoAux = vacunasAplicadas.map((aplicacion) => {
           return {
             idAplicacion: aplicacion.id,
@@ -600,7 +611,7 @@ module.exports = {
         const centroVac = Array.from(centrosVacSet).map((jsonString) =>
           JSON.parse(jsonString)
         );
-       
+
         const resultado = resultadoAux.filter((resu) => {
           if (
             provincia !== "-" &&
@@ -630,9 +641,7 @@ module.exports = {
             ciudad !== "-"
           ) {
             if (vencidas) {
-              return (
-                resu.vacuna === tipoVacuna && resu.ciudad === ciudad && resu.vencida
-              );
+              return resu.vacuna === tipoVacuna && resu.ciudad === ciudad && resu.vencida;
             } else {
               return resu.vacuna === tipoVacuna && resu.ciudad === ciudad;
             }
@@ -697,12 +706,12 @@ module.exports = {
             tipoVacuna === "-" &&
             centroId === "-" &&
             provincia !== "-" &&
-            ciudad === "-" 
+            ciudad === "-"
           ) {
             if (vencidas) {
               return resu.provincia === provincia && resu.vencida;
             } else {
-              console.log("ENTRO!!!! ACA")
+              console.log("ENTRO!!!! ACA");
               return resu.provincia === provincia;
             }
           } else if (
@@ -778,9 +787,7 @@ module.exports = {
             ciudad !== "-"
           ) {
             if (vencidas) {
-              return (
-                resu.idCentro === centroId && resu.ciudad === ciudad && resu.vencida
-              );
+              return resu.idCentro === centroId && resu.ciudad === ciudad && resu.vencida;
             } else {
               resu.idCentro === centroId && resu.ciudad === ciudad;
             }
@@ -795,8 +802,12 @@ module.exports = {
             } else {
               resu.idCentro === centroId;
             }
-          } else if (tipoVacuna === "-" && centroId === "-" && provincia === "-" &&
-          ciudad === "-") {
+          } else if (
+            tipoVacuna === "-" &&
+            centroId === "-" &&
+            provincia === "-" &&
+            ciudad === "-"
+          ) {
             if (vencidas) {
               return resu.vencida;
             }

@@ -32,6 +32,40 @@ function confirmarEliminacion(event) {
       }
     });
   }
+  function confirmarAgregacionCentro(event) {
+    event.preventDefault(); 
+    Swal.fire({
+      title: '¿Estás seguro de agregar el centro de vacunacion?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, agregar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        event.target.submit();
+      }
+    });
+  }
+  function confirmarAgregacionDeposito(event) {
+    event.preventDefault(); 
+    Swal.fire({
+      title: '¿Estás seguro de agregar el Deposito?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, agregar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        event.target.submit();
+      }
+    });
+  }
   function confirmarCompra(event) {
     event.preventDefault(); 
     Swal.fire({
