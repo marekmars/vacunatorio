@@ -23,6 +23,7 @@ block content
            th Fecha de Vencimiento
            th Motivo de Descarte 
            th Usuario Persona a Cargo 
+           th Borrar 
        tbody
          each item in resultados
            tr
@@ -36,8 +37,17 @@ block content
              td= item.fechaVencimiento 
              td= item.motivoDescarte
              td= `Id: ${item.idPersonaACargo} - ${item.personaACargoNombre} ${item.personaACargoApellido}`
-                          
-     
+             if item.motivoDescarte!=="Vencida" 
+              td
+                form(id=`deleteForm${item.idDescarte}`, action=`/borrarDescarte/${item.idDescarte}?_method=DELETE`, method='POST', onsubmit=`return confirmarEliminacion(event)`)
+                  button(type='submit', class='btn btn-danger')
+                    i(class='fa fa-trash') 
+                  .form-check.d-flex.flex-column.align-items-center.p-0 
+                   input.form-check-input.p-0.mx-auto(type="checkbox" name="restaurarLote") 
+                   label.form-check-label.p-0.fs-7(for="restaurarLote") Restaurar Lote Descartado 
+             else 
+               td              
+      
       
     - if (typeof alert !== "undefined")
       script.

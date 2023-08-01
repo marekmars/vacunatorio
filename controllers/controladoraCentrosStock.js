@@ -5,6 +5,8 @@ const { DepoProvinciaStock } = require("../models/DepoProvinciaStock");
 const { CentroVacunacion } = require("../models/CentroVacunacion");
 const { CentroVacunacionStock } = require("../models/CentroVacunacionStock");
 const { Localidad } = require("../models/Localidad");
+const { DepositoNacion } = require("../models/DepositoNacion");
+const { DepositoProvincia } = require("../models/DepositoProv");
 const { sequelize, Sequelize, DataTypes, QueryTypes, Op } = require("../dataBase/bd.js");
 
 module.exports = {
@@ -75,7 +77,6 @@ module.exports = {
       const prov = [...provSet];
       const tipoVac = [...tipoVacSet];
 
-      console.log(resultado);
       res.render("centrosVacunacionStock", {
         userName,
         loginlogoutLink,
@@ -98,10 +99,10 @@ module.exports = {
         const centrosStock = await CentroVacunacionStock.findOne({ where: { id: id } });
         console.log(centrosStock);
         centrosStock.fechaRecepcion = fechaRecepcion;
-        if(centrosStock.estado!=="descartado"){
+        if (centrosStock.estado !== "descartado") {
           centrosStock.estado = "enStock";
         }
-        
+
         await centrosStock.save();
         res.render("centrosVacunacionStock", {
           alert: true,
@@ -600,6 +601,361 @@ module.exports = {
     } catch (error) {
       console.error("Error al obtener las compras", error);
       res.sendStatus(500);
+    }
+  },
+  editarLoteCentro: async (req, res) => {
+    const idLote = req.params.id;
+    userName = req.session.user.correo;
+    loginlogoutName = "Logout";
+    loginlogoutLink = "/logout";
+
+    try {
+      const centroOriginal = await CentroVacunacionStock.findByPk(idLote, {
+        include: [
+          {
+            model: DepoProvinciaStock,
+            include: [
+              {
+                model: Loteprovedor,
+                include: [
+                  {
+                    model: Vacuna,
+
+                    include: [
+                      {
+                        model: Laboratorio,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: CentroVacunacion,
+            include: [
+              {
+                model: Localidad,
+              },
+            ],
+          },
+        ],
+      });
+
+      const loteCentro = {
+        idSublote:centroOriginal.idSublote,
+        tipoVacuna: centroOriginal.DepoProvinciaStock.Loteprovedor.Vacuna.tipoVacuna,
+        nombreComercial: centroOriginal.DepoProvinciaStock.Loteprovedor.Vacuna.nombreComercial,
+        nombreLaboratorio: centroOriginal.DepoProvinciaStock.Loteprovedor.Vacuna.Laboratorio.nombre,
+        fechaFabricacion: centroOriginal.DepoProvinciaStock.Loteprovedor.fechaFabricacion,
+        fechaVencimiento: centroOriginal.DepoProvinciaStock.Loteprovedor.fechaVencimiento,
+        idCentro: centroOriginal.idCentro,
+        ciudad: centroOriginal.Centrovacunacion.Localidad.ciudad,
+        provincia: centroOriginal.Centrovacunacion.Localidad.provincia,
+        direccion: centroOriginal.Centrovacunacion.direccion,
+        cantVacunas: centroOriginal.cantVacunas,
+        origen: centroOriginal.DepoProvinciaStock.Loteprovedor.Vacuna.paisOrigen,
+        fechaRecepcion: centroOriginal.fechaRecepcion,
+      };
+      console.log(loteCentro)
+
+      const depoProvStocks = await DepoProvinciaStock.findAll({
+        include: [
+          {
+            model: Loteprovedor,
+            include: [
+              {
+                model: Vacuna,
+
+                include: [
+                  {
+                    model: Laboratorio,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: DepositoProvincia,
+            include: [
+              {
+                model: Localidad,
+              },
+            ],
+          },
+        ],
+      });
+
+      const resultadoAux = depoProvStocks.map((stock) => {
+        if (
+          stock.DepositoProvincium.Localidad.provincia ===
+          centroOriginal.Centrovacunacion.Localidad.provincia
+        ) {
+          return {
+            id: stock.id,
+            idLote: stock.Loteprovedor.idLote,
+            tipoVacuna: stock.Loteprovedor.Vacuna.tipoVacuna,
+            nombreComercial: stock.Loteprovedor.Vacuna.nombreComercial,
+            nombreLaboratorio: stock.Loteprovedor.Vacuna.Laboratorio.nombre,
+            fechaFabricacion: stock.Loteprovedor.fechaFabricacion,
+            fechaVencimiento: stock.Loteprovedor.fechaVencimiento,
+            origen: stock.Loteprovedor.Vacuna.paisOrigen,
+            vencida: stock.Loteprovedor.vencida,
+            idDepoProv: stock.DepositoProvincium.idDepoProv,
+            ciudad: stock.DepositoProvincium.Localidad.ciudad,
+            provincia: stock.DepositoProvincium.Localidad.provincia,
+            direccion: stock.DepositoProvincium.direccion,
+            cantVacunas: stock.cantVacunas,
+            estado: stock.estado,
+            fechaRecepcion: stock.fechaRecepcion,
+          };
+        }
+      });
+      const resultado = resultadoAux.filter((resu) => resu !== undefined);
+
+      const centrosVacunacionAux = await CentroVacunacion.findAll({
+        include: [
+          {
+            model: Localidad,
+            attributes: ["idLocalidad", "provincia", "ciudad"],
+          },
+        ],
+      });
+      const resultadoCentrosAux = centrosVacunacionAux.map((centro) => {
+        if (
+          centro.Localidad.provincia ===
+          centroOriginal.Centrovacunacion.Localidad.provincia
+        ) {
+          return {
+            idCentro: centro.idCentro,
+            idLocalidad: centro.idLocalidad,
+            provincia: centro.Localidad.provincia,
+            ciudad: centro.Localidad.ciudad,
+            direccion: centro.direccion,
+            telefono: centro.telefono,
+          };
+        }
+      });
+      const resultadoCentro = resultadoCentrosAux.filter((resu) => resu !== undefined);
+
+      res.render("editarLoteCentro", {
+        userName,
+        loginlogoutLink,
+        loginlogoutName,
+        resultadoCentro,
+        idLote,
+        resultado,
+        loteCentro
+      });
+    } catch (error) {
+      console.error("Error al obtener las compras", error);
+      res.sendStatus(500);
+    }
+  },
+  editarLoteCentroPost: async (req, res) => {
+    const idLoteCentro = req.params.id;
+    const idSubloteProv = req.body.loteSelect;
+    const cantVacunas = req.body.cantidadVacunas;
+    const idCentro = req.body.centros;
+    const fechaRecepcion = req.body.fechaRecepcion;
+    const devolverVacuna = req.body.devolverVacuna;
+
+    console.log(req.body);
+    try {
+      const centroOriginal = await CentroVacunacionStock.findByPk(idLoteCentro, {
+        include: [
+          {
+            model: DepoProvinciaStock,
+            include: [
+              {
+                model: Loteprovedor,
+                include: [
+                  {
+                    model: Vacuna,
+
+                    include: [
+                      {
+                        model: Laboratorio,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: CentroVacunacion,
+            include: [
+              {
+                model: Localidad,
+              },
+            ],
+          },
+        ],
+      });
+      console.log("CENTROSTROCK");
+      console.log(centroOriginal);
+
+      if (
+        centroOriginal.estado !== "descarcado" &&
+        centroOriginal.estado !== "sinStock"
+      ) {
+        if (idSubloteProv !== "" && idSubloteProv !== "-") {
+          const subloteProvOriginal = await DepoProvinciaStock.findByPk(
+            centroOriginal.idSublote
+          );
+
+          const subloteProvNuevo = await DepoProvinciaStock.findByPk(idSubloteProv);
+          if (devolverVacuna) {
+            if (
+              cantVacunas !== "" &&
+              subloteProvNuevo.cantVacunas >= Number(cantVacunas)
+            ) {
+              subloteProvNuevo.cantVacunas =
+                subloteProvNuevo.cantVacunas - Number(cantVacunas);
+              subloteProvOriginal.cantVacunas =
+                subloteProvOriginal.cantVacunas + centroOriginal.cantVacunas;
+
+              await CentroVacunacionStock.update(
+                { cantVacunas: cantVacunas },
+                { where: { id: idLoteCentro } }
+              );
+              if (subloteProvNuevo.cantVacunas === 0) {
+                subloteProvNuevo.estado = "sinStock";
+              }
+              await subloteProvNuevo.save();
+              await subloteProvOriginal.save();
+
+              const [numUpdated] = await CentroVacunacionStock.update(
+                { idSublote: idSubloteProv },
+                { where: { id: idLoteCentro } }
+              );
+              // centroOriginal.idSublote = idSubloteProv;
+            } else if (
+              cantVacunas === "" &&
+              subloteProvNuevo.cantVacunas >= centroOriginal.cantVacunas
+            ) {
+              console.log("ENTROOOOOOOOOOOOOO 2");
+              subloteProvNuevo.cantVacunas =
+                subloteProvNuevo.cantVacunas - centroOriginal.cantVacunas;
+              subloteProvOriginal.cantVacunas =
+                subloteProvOriginal.cantVacunas + centroOriginal.cantVacunas;
+
+              if (subloteProvNuevo.cantVacunas === 0) {
+                subloteProvNuevo.estado = "sinStock";
+              }
+              await subloteProvNuevo.save();
+              await subloteProvOriginal.save();
+              console.log("centroOriginal.idSublote");
+              console.log(centroOriginal.idSublote);
+              console.log("idSubloteProv");
+              console.log(parseInt(idSubloteProv));
+
+              // centroOriginal.idSublote = idSubloteProv;
+              const [numUpdated] = await CentroVacunacionStock.update(
+                { idSublote: idSubloteProv },
+                { where: { id: idLoteCentro } }
+              );
+
+              console.log("CENTROORIGINAL DEPSUES");
+              console.log(centroOriginal);
+            } else {
+              console.log("ENTROOOOOOOOOOOOOO 3");
+              return res.render("centrosVacunacionStock", {
+                alert: true,
+                alertTitle: "ERROR",
+                alertMessage:
+                  "No se realizo la Modificacion ya que el stock del nuevo lote es menor a la cantidad de vacunas",
+                alertIcon: "error",
+                showConfirmButton: true,
+                timer: false,
+                ruta: "centrosStock",
+                resultado: ["a"],
+                tipoVac: ["a"],
+                prov: ["a"],
+              });
+            }
+          } else {
+            if (cantVacunas !== "") {
+              await CentroVacunacionStock.update(
+                { idSublote: idSubloteProv },
+                { where: { id: idLoteCentro } }
+              );
+              await CentroVacunacionStock.update(
+                { cantVacunas: cantVacunas },
+                { where: { id: idLoteCentro } }
+              );
+            } else {
+              await CentroVacunacionStock.update(
+                { idSublote: idSubloteProv },
+                { where: { id: idLoteCentro } }
+              );
+            }
+          }
+        }
+
+        if (idSubloteProv === "" || (idSubloteProv === "-" && cantVacunas !== "")) {
+          centroOriginal.cantVacunas = cantVacunas;
+        }
+
+        if (idCentro !== "-" && idCentro !== "") {
+          const [numUpdated] = await CentroVacunacionStock.update(
+            { idCentro: idCentro },
+            { where: { id: idLoteCentro } }
+          );
+        }
+
+        if (fechaRecepcion !== "") {
+          centroOriginal.fechaRecepcion = fechaRecepcion;
+          console.log("ESTADOOOOOO");
+          console.log(centroOriginal.estado);
+          if (centroOriginal.estado !== "descartado") {
+            centroOriginal.estado = "enStock";
+          }
+        }
+
+        await centroOriginal.save();
+        console.log("FINNNNNNNNNNNN===========================================");
+        res.render("centrosVacunacionStock", {
+          alert: true,
+          alertTitle: "Modificacion del Lote Correcta",
+          alertMessage: "Se realizo la Modificacion correctamente",
+          alertIcon: "success",
+          showConfirmButton: false,
+          timer: 1200,
+          ruta: "centrosStock",
+          resultado: ["a"],
+          tipoVac: ["a"],
+          prov: ["a"],
+        });
+      } else {
+        return res.render("centrosVacunacionStock", {
+          alert: true,
+          alertTitle: "ERROR",
+          alertMessage: "No se realizo la Modificacion devido a un error",
+          alertIcon: "error",
+          showConfirmButton: true,
+          timer: false,
+          ruta: "centrosStock",
+          resultado: ["a"],
+          tipoVac: ["a"],
+          prov: ["a"],
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.render("centrosVacunacionStock", {
+        alert: true,
+        alertTitle: "ERROR",
+        alertMessage: "No se realizo la Modificacion devido a un error",
+        alertIcon: "error",
+        showConfirmButton: true,
+        timer: false,
+        ruta: "centrosStock",
+        resultado: ["a"],
+        tipoVac: ["a"],
+        prov: ["a"],
+      });
     }
   },
 };

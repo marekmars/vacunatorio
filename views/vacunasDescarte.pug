@@ -69,7 +69,7 @@ block content
         h3.h3.mx-auto Descartar Vacunas Por Lote    
       form#recurso.form.form-floting.row.g-3.w-100.mx-auto(action="/vacunasDescarte", method="post" data-bs-theme="dark" onsubmit=`return confirmarAplicacion(event)`)     
        .form-check.form-switch.d-flex.col-4.flex-column
-        label.form-check-label.h4.mx-auto(for="loteNacion") Lote Nacion
+        label.form-check-label.h4.mx-auto(for="radioLoteCompleto") Lote Nacion
         input#radioLoteCompleto.form-check-input.larger-switch.mx-auto(type="radio" name="lote"  value="loteNacion")      
        .form-check.form-switch.d-flex.col-4.flex-column
         label.form-check-label.h4.mx-auto(for="loteProvincia") Lote Provincia
@@ -159,8 +159,8 @@ block content
    loteSelectLabel.textContent= 'Lote Nacion'
 
    radioLoteCompleto.addEventListener('change', () => {
-    lotesInferiores.disabled=false
-    lotesInferiores.checked=false
+     lotesInferiores.disabled=false
+     lotesInferiores.checked=false
      loteSelect.innerHTML=''
      optionVacia.value= "-"
      optionVacia.textContent= "-"
@@ -196,7 +196,7 @@ block content
      FechaVencimientoP.innerText=""
      FechaAdquisicionP.innerText=""
      loteSelect.appendChild(optionVacia)
-     loteSelectLabel.textContent = 'Lote Nacion';
+     loteSelectLabel.textContent = 'Lote Provincia';
      loteProv.forEach(lote=>{
         const option = document.createElement('option');
         option.value= lote.idProvStock
@@ -210,7 +210,6 @@ block content
      lotesInferiores.disabled=true
      lotesInferiores.checked=false
      loteSelectLabel.textContent = 'Lote Centro';
-     loteSelectLabel.textContent = 'Lote Provincia';
      loteSelect.innerHTML=''
      optionVacia.value= "-"
      optionVacia.textContent= "-"
@@ -222,7 +221,7 @@ block content
      FechaVencimientoP.innerText=""
      FechaAdquisicionP.innerText=""
      loteSelect.appendChild(optionVacia)
-     loteSelectLabel.textContent = 'Lote Nacion';
+
      loteCentro.forEach(lote=>{
         const option = document.createElement('option');
         option.value= lote.idCentroStock
@@ -244,6 +243,7 @@ block content
       FechaVencimientoP.innerText=""
       FechaAdquisicionP.innerText=""
     if(radioLoteCompleto.checked){    
+
       loteAuxiliar= loteNacion.filter(lote => lote.idLote==loteSelect.value);
       console.log(loteAuxiliar)
       vacunaP.innerText=loteAuxiliar[0].vacuna

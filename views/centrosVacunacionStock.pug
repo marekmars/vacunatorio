@@ -53,6 +53,8 @@ block content
            th Cantidad de Vacunas
            th Estado
            th Fecha de Recepcion
+           th Editar 
+        
             
        tbody
          each item in resultado
@@ -79,6 +81,12 @@ block content
            
              else  
               td=item.fechaRecepcion
+             if item.estado==="enStock"||item.estado==="enViaje"            
+              td  
+                a.btn.btn-primary.m-auto(style="width:40px"  href=`/editarLoteCentro/${item.idLoteCentro}`)
+                  i.fa-solid.fa-pen-to-square
+             else
+              td
             
       
     - if (typeof alert !== "undefined")

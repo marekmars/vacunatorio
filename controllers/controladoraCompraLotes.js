@@ -59,7 +59,9 @@ module.exports = {
           fechaAdquisicion: compra.Loteprovedor.fechaAdquisicion,
           idDepoNacion: compra.Loteprovedor.idDepoNacion,
           deposito: `${compra.Loteprovedor.idDepoNacion}-${compra.Loteprovedor.Deposito.Localidad.provincia} - ${compra.Loteprovedor.Deposito.Localidad.ciudad}`,
-          cantVacunas: compra.cantVacunas,
+          cantVacunasCompradas: compra.cantVacunas,
+          cantVacunas: compra.Loteprovedor.cantVacunas,
+
           fechaCompra: compra.fechaCompra,
         };
       });

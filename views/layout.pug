@@ -25,14 +25,18 @@ html(lang="es")
                  a.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false') Vacunas
                  ul.dropdown-menu
                    li
+                     a.dropdown-item(href='/aplicacionVacuna') Aplicar Vacuna   
+                   li
+                    hr.dropdown-divider                      
+                   li
+                     
                      a.dropdown-item(href='/compra') Comprar Lotes Vacunas
                    li
-                   a.dropdown-item(href='/reasignarLotes') Reasignar Lotes de Vacunas a Centros 
+                    a.dropdown-item(href='/crearVacuna') Crear Tipo Vacuna    
                    li
-                    a.dropdown-item(href='/aplicacionVacuna') Aplicar Vacuna  
-                   li
-                    a.dropdown-item(href='/vacunasDescarte') Descartar Lotes de Vacunas     
-                  
+                    a.dropdown-item(href='/vacunasDescarte') Descartar Lotes de Vacunas  
+                   li                       
+                    a.dropdown-item(href='/reasignarLotes') Reasignar Lotes de Vacunas a Centros
                li.nav-item.dropdown
                  a.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false') Distribucion
                  ul.dropdown-menu

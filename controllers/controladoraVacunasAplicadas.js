@@ -190,7 +190,7 @@ module.exports = {
     let idPaciente;
     let idLocalidad;
     let idEnfermero;
-    console.log(body)
+    console.log(body);
 
     if (
       body.provincia !== "-" &&
@@ -273,7 +273,7 @@ module.exports = {
             console.log(enferemero.idEnfermero);
             idEnfermero = enferemero.idEnfermero;
           } else {
-            console.log("NO HAY ENFEREMRO")
+            console.log("NO HAY ENFEREMRO");
             idEnfermero = body.enfermero;
           }
           console.log("PASO");
@@ -394,7 +394,7 @@ module.exports = {
 
       const resultado = vacunasAplicadas.map((aplicacion) => {
         return {
-          idAplicacion: aplicacion.id,
+          idAplicacion: aplicacion.idAplicacion,
           idCentro: aplicacion.CentroVacunacionStock.idCentro,
           idSubloteCentro: aplicacion.CentroVacunacionStock.id,
           idSubloteProv: aplicacion.CentroVacunacionStock.idSublote,
@@ -431,6 +431,7 @@ module.exports = {
           estadoLote: aplicacion.CentroVacunacionStock.estado,
         };
       });
+      console.log(resultado);
       const localidadSet = new Set(
         resultado.map((resu) => {
           return { ciudad: resu.ciudad, provincia: resu.provincia };
@@ -856,6 +857,57 @@ module.exports = {
     } catch (error) {
       console.error("Error al obtener las compras", error);
       res.sendStatus(500);
+    }
+  },
+  borrarAplicacion: async (req, res) => {
+    const idAplicacion = req.params.id;
+    const devolverVacuna = req.body.devolverVacuna;
+    try {
+      const aplicacionVacuna = await VacunasAplicadas.findOne({
+        where: { idAplicacion: idAplicacion },
+      });
+      const loteCentro = await CentroVacunacionStock.findOne({
+        where: { id: aplicacionVacuna.idLoteCentro },
+      });
+
+      if (loteCentro.estado !== "descartado" && devolverVacuna) {
+        const nuevaCantVacunas = loteCentro.cantVacunas + 1;
+        await CentroVacunacionStock.update(
+          { cantVacunas: nuevaCantVacunas },
+          { where: { id: loteCentro.id } }
+        );
+      }
+      const aplicacionVacunaBorrada = await VacunasAplicadas.destroy({
+        where: { idAplicacion: idAplicacion },
+      });
+      res.render("vacunasAplicadas", {
+        resultado: [""],
+        tipoVac: [""],
+        centroVac: [""],
+        localidad: [""],
+        alert: true,
+        alertTitle: "Operacion Correcta",
+        alertMessage: `Se elimino la aplicacion correctamente`,
+        alertIcon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+        ruta: "vacunasAplicadas",
+      });
+    } catch (error) {
+      console.log(error);
+      res.render("vacunasAplicadas", {
+        resultado: [""],
+        tipoVac: [""],
+        centroVac: [""],
+        localidad: [""],
+        alert: true,
+        alertTitle: "Error",
+        alertMessage: `No se pudo eliminar la aplicacion debido a un error`,
+        alertIcon: "error",
+        showConfirmButton: true,
+        timer: false,
+        ruta: "vacunasAplicadas",
+      });
     }
   },
 };

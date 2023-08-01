@@ -25,6 +25,7 @@ block content
            th Cantidad de Vacunas
            th Estado
            th Fecha de Recepcion
+           th Editar
             
        tbody
          each item in resultado
@@ -50,7 +51,12 @@ block content
            
              else  
               td=item.fechaRecepcion
-            
+             if item.estado==="enStock"||item.estado==="enViaje"            
+              td  
+                a.btn.btn-primary.m-auto(style="width:40px"  href=`/editarLoteProv/${item.id}`)
+                  i.fa-solid.fa-pen-to-square
+             else
+              td
                          
     .d-flex.justify-content-ceneter.align-items-center.col-12 
       

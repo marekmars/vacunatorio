@@ -608,6 +608,7 @@ module.exports = {
 
         if (resultado) {
           resultados.push({
+            idDescarte: vacunaDescarte.idDescarte,
             idLote: vacunaDescarte.idLote,
             tipoLote: vacunaDescarte.tipoLote,
             tipoVacuna:
@@ -979,30 +980,93 @@ module.exports = {
       res.sendStatus(500);
     }
   },
+  borrarDescarte: async (req, res) => {
+    const idDescarte = req.params.id;
+    const restaurarLote = req.body.restaurarLote;
+    try {
+      const vacunasDescartadas = await VacunaDescarte.findOne({
+        where: { idDescarte: idDescarte },
+      });
+      console.log(restaurarLote);
+      console.log(vacunasDescartadas);
+      const tipoLote = vacunasDescartadas.tipoLote;
+      const idLote = vacunasDescartadas.idLote;
+      const cantVacunas = vacunasDescartadas.cantVacunas;
+    
+      
+      if (restaurarLote) {
+        if (tipoLote === "LoteNacion") {
+          await Loteprovedor.update(
+            {
+              cantVacunas: cantVacunas,
+              estado: Sequelize.literal(
+                `CASE WHEN fechaAdquisicion IS NULL THEN 'enViaje' ELSE 'enStock' END`
+              ),
+            },
+            {
+              where: {
+                idLote: idLote,
+              },
+            }
+          );
+        } else if (tipoLote === "LoteProvincia") {
+          await DepoProvinciaStock.update(
+            {
+              cantVacunas: cantVacunas,
+              estado: Sequelize.literal(
+                `CASE WHEN fechaRecepcion IS NULL THEN 'enViaje' ELSE 'enStock' END`
+              ),
+            },
+            {
+              where: {
+                id: idLote,
+              },
+            }
+          );
+        } else {
+          await CentroVacunacionStock.update(
+            {
+              cantVacunas: cantVacunas,
+              estado: Sequelize.literal(
+                `CASE WHEN fechaRecepcion IS NULL THEN 'enViaje' ELSE 'enStock' END`
+              ),
+            },
+            {
+              where: {
+                id: idLote,
+              },
+            }
+          );
+        }
+      }
+      
+      const descarteBorrado = await VacunaDescarte.destroy({
+        where: { idDescarte: idDescarte },
+      });
 
-  // descateLotesAdjuntos: async (req, res, next) => {
-  //   const loteProvedor = await Loteprovedor.findAll({ where: { estado: "descartado" } });
+      res.render("vacunasDescartadas", {
+        resultados: [""],
+        alert: true,
+        alertTitle: "Operacion Correcta",
+        alertMessage: `Se elimino el descarte correctamente`,
+        alertIcon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+        ruta: "vacunasDescartadas",
+      });
+    } catch (error) {
+      console.log(error);
 
-  //   loteProvedor.forEach(async (lote) => {
-  //     const loteProv = await DepoProvinciaStock.findAll({
-  //       where: { idLote: lote.idLote },
-  //     });
-  //     if (loteProv != null) {
-  //       loteProv.forEach(async (loteAux) => {
-  //         loteAux.estado = "descartado";
-  //         loteAux.save();
-  //         const loteCentro = await CentroVacunacionStock.findAll({
-  //           where: { idSublote: loteAux.id },
-  //         });
-  //         if (loteCentro !== null) {
-  //           loteCentro.forEach(async (loteAux) => {
-  //             loteAux.estado = "descartado";
-  //             loteAux.save();
-  //           });
-  //         }
-  //       });
-  //     }
-  //   });
-  //   next();
-  // },
+      res.render("vacunasDescartadas", {
+        resultados: [""],
+        alert: true,
+        alertTitle: "Error",
+        alertMessage: `No se pudo eliminar el descarte debido a un error`,
+        alertIcon: "error",
+        showConfirmButton: true,
+        timer: false,
+        ruta: "vacunasDescartadas",
+      });
+    }
+  },
 };

@@ -1,6 +1,6 @@
 extends layout.pug
 block link
- 
+  link(href='styles/styleTablaLink.css' rel='stylesheet')  
 block scripts
   script(defer src="scripts/alertas.js")  
 block content
@@ -38,6 +38,7 @@ block content
              td= item.cantVacunasDistribucion
              td= item.cantVacunasDescartadas
              td= item.cantVacunasVencidas
+            
         
 
      

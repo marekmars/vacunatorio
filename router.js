@@ -2,8 +2,16 @@ const express = require("express");
 const router = express.Router();
 const app = express();
 const { isAuth, login, logout, register, logger } = require("./middlewares/auth");
-const { compraVacuna, mostrarCompraVacuna } = require("./controllers/ControladoraVacuna");
-const { mostrarCompraLotes,filtrarCompras } = require("./controllers/controladoraCompraLotes");
+const {
+  compraVacuna,
+  mostrarCompraVacuna,
+  crearVacuna,
+  crearVacunaPost,
+} = require("./controllers/ControladoraVacuna");
+const {
+  mostrarCompraLotes,
+  filtrarCompras,
+} = require("./controllers/controladoraCompraLotes");
 const {
   modificarEstado,
   envioVacunas,
@@ -11,38 +19,53 @@ const {
   envioVacunasCentro,
   envioVacunasPostCentro,
   chequeoVencimiento,
-  mostrarLotesProvedor
+  mostrarLotesProvedor,
+  editarLote,
+  editarLotePost,
+ 
 } = require("./controllers/controladoraLoteprovedor");
 const {
   muestraStockProv,
   muestraStockProvRecep,
+  editarLoteProv,
+  editarLoteProvPost,
 } = require("./controllers/controladoraDepoProvStock");
 const {
   centrosStock,
   centrosStockPost,
   centrosStockReasignar,
   centrosStockReasignarPost,
-  centrosAplicar
+  centrosAplicar,
+  editarLoteCentro,
+  editarLoteCentroPost,
 } = require("./controllers/controladoraCentrosStock");
 const {
   aplicacionVacuna,
   aplicacionVacunaPost,
   mostrarAplicaciones,
-  filtrarAplicadas
+  filtrarAplicadas,
+  borrarAplicacion,
 } = require("./controllers/controladoraVacunasAplicadas");
 const {
   descarteVacunas,
   descarteVacunasPost,
   descarteVacunasVencidas,
   vacunasDescartadas,
-  filtrarVencidas
+  filtrarVencidas,
+  borrarDescarte,
 } = require("./controllers/controladoraVacunasDescarte");
 const {
   agregarCentro,
-  agregarCentroPost
+  agregarCentroPost,
 } = require("./controllers/controladoraCentrosVacunacion");
-const {agregarDepoNac,agregarDepoNacPost}=require("./controllers/controladoraDepoNac")
-const {agregarDepoProv,agregarDepoProvPost}=require("./controllers/controladoraDepoProv")
+const {
+  agregarDepoNac,
+  agregarDepoNacPost,
+} = require("./controllers/controladoraDepoNac");
+const {
+  agregarDepoProv,
+  agregarDepoProvPost,
+} = require("./controllers/controladoraDepoProv");
 
 let userName = "Anonimo";
 let loginlogoutName = "Login";
@@ -51,8 +74,7 @@ let loginlogoutLink = "/login";
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-router.get("/",logger, async (req, res) => {
-  
+router.get("/", logger, async (req, res) => {
   if (req.session.user) {
     userName = req.session.user.correo;
     loginlogoutName = "Logout";
@@ -72,7 +94,7 @@ router.get("/login", async (req, res) => {
 router.get("/register", async (req, res) => {
   res.render("register", { userName, loginlogoutLink, loginlogoutName });
 });
-router.post("/register",logger, register);
+router.post("/register", logger, register);
 router.post("/login", login);
 router.get("/logout", logout);
 router.get(
@@ -106,12 +128,20 @@ router.get("/filtrarAplicadas", isAuth, chequeoVencimiento, filtrarAplicadas);
 router.get("/filtrarVencidas", isAuth, chequeoVencimiento, filtrarVencidas);
 router.get("/agregarCentro", isAuth, agregarCentro);
 router.post("/agregarCentro", isAuth, agregarCentroPost);
-
 router.get("/agregarDepoProvincia", isAuth, agregarDepoProv);
 router.post("/agregarDepoProvincia", isAuth, agregarDepoProvPost);
 router.get("/agregarDepoNacion", isAuth, agregarDepoNac);
+router.get("/editarLote/:id", isAuth, editarLote);
+router.post("/editarLote/:id", isAuth, editarLotePost);
+router.get("/editarLoteProv/:id", isAuth, editarLoteProv);
+router.post("/editarLoteProvPost/:id", isAuth, editarLoteProvPost);
+router.get("/editarLoteCentro/:id", isAuth, editarLoteCentro);
+router.post("/editarLoteCentro/:id", isAuth, editarLoteCentroPost);
+router.delete("/borrarAplicacion/:id", isAuth, borrarAplicacion);
+router.delete("/borrarDescarte/:id", isAuth, borrarDescarte);
+router.get("/crearVacuna", isAuth, crearVacuna);
+router.post("/crearVacuna", isAuth, crearVacunaPost);
 router.post("/agregarDepoNacion", isAuth, agregarDepoNacPost);
-
 router.get("/reasignarLotes", isAuth, chequeoVencimiento, centrosStockReasignar);
 router.post("/reasignarLotes", isAuth, centrosStockReasignarPost);
 router.post("/envioVacunasCentros", isAuth, envioVacunasPostCentro);

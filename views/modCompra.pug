@@ -37,9 +37,11 @@ block content
            th Origen 
            th Estado  
            th Deposito 
-           th Cantidad de Vacunas
+           th Cantidad de Vacunas Compradas 
+           th Cantidad en Stock
            th Fecha de Compra
            th Fecha de Adquisicion 
+           th Editar
        tbody
          each item in resultado
            tr
@@ -58,14 +60,20 @@ block content
              else  
               td(class=`${item.estado}`)= item.estado    
              td= item.deposito
+             td= item.cantVacunasCompradas 
              td= item.cantVacunas 
              td= item.fechaCompra
              if item.fechaAdquisicion===null
               td(class=`${item.estado}`)= "En Viaje" 
              else  
-              td= item.fechaAdquisicion             
-  
-  
+              td= item.fechaAdquisicion  
+             if item.estado==="enStock"||item.estado==="enViaje"            
+              td
+                a.btn.btn-primary.m-auto(style="width:40px"  href=`/editarLote/${item.idLote}`)
+                  i.fa-solid.fa-pen-to-square
+             else
+              td 
+             
     script.
      const resultado = !{JSON.stringify(resultado)};
      const resultadoTodos = !{JSON.stringify(resultadoTodos)};

@@ -65,6 +65,7 @@ block content
            th(scope="col") Fecha de Aplicacion
            th(scope="col") Vencida  
            th(scope="col") Estado
+           th(scope="col") Borrar
             
        tbody
          each item in resultado
@@ -87,9 +88,17 @@ block content
              td= item.vencida
              if item.estadoLote==="descartado" 
               td(class="descartado")= "Descartado"
+              td
              else  
-              td(class="enStock")= "OK"      
-            
+              td(class="enStock")= "OK"               
+              td
+               form(id=`deleteForm${item.idAplicacion}`, action=`/borrarAplicacion/${item.idAplicacion}?_method=DELETE`, method='POST', onsubmit=`return confirmarEliminacion(event)`)
+                 button(type='submit', class='btn btn-danger')
+                   i(class='fa fa-trash') 
+                 .form-check.d-flex.flex-column.align-items-center.p-0 
+                  input.form-check-input.p-0.mx-auto(type="checkbox" name="devolverVacuna") 
+                  label.form-check-label.p-0.fs-7(for="devolverVacuna") Devolver Vacuna a Lote   
+             
                         
       
     - if (typeof alert !== "undefined")
@@ -109,6 +118,7 @@ block content
      const provincias = document.getElementById("provincia");
      const localidad = document.getElementById("localidad");
      const resultado = !{JSON.stringify(resultado)};
+     console.log(resultado)
      const centros = !{JSON.stringify(centroVac)};
      const localidades = !{JSON.stringify(localidad)};
      const optionVacia = document.createElement("option");

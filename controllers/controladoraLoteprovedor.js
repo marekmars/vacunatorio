@@ -21,10 +21,10 @@ module.exports = {
         const fechaAdquisicion = req.body.fechaAdquisicion;
 
         const lote = await Loteprovedor.findOne({ where: { idLote: idLote } });
-        if(lote.estado!=="descartado"){
+        if (lote.estado !== "descartado") {
           lote.estado = "enStock";
         }
-        
+
         lote.fechaAdquisicion = fechaAdquisicion;
         await lote.save();
         res.render("modCompra", {
@@ -64,7 +64,7 @@ module.exports = {
     userName = req.session.user.correo;
     loginlogoutName = "Logout";
     loginlogoutLink = "/logout";
-    console.log(req.body)
+    console.log(req.body);
     try {
       const loteprovedor = await Loteprovedor.findAll({
         include: [
@@ -234,8 +234,6 @@ module.exports = {
     loginlogoutName = "Logout";
     loginlogoutLink = "/logout";
 
-   
-
     try {
       const depoProvinciaStock = await DepoProvinciaStock.findAll({
         include: [
@@ -267,10 +265,9 @@ module.exports = {
           },
         ],
       });
-      
+
       const resultadoAux = depoProvinciaStock.map((aux) => {
         if (aux.cantVacunas > 0 && aux.estado === "enStock") {
-          
           return {
             idSublote: aux.id,
             idDepoProv: aux.idDepoProv,
@@ -301,8 +298,6 @@ module.exports = {
           },
         ],
       });
-      
-      
 
       const resultadoCentros = centrosVacunacion.map((aux) => {
         return {
@@ -404,7 +399,6 @@ module.exports = {
           ruta: "envioVacunasCentros",
           resultado: ["a"],
           resultadoDepoProv: ["a"],
-  
         });
       }
     } else {
@@ -418,7 +412,6 @@ module.exports = {
         ruta: "envioVacunasCentros",
         resultado: ["a"],
         resultadoDepoProv: ["a"],
- 
       });
     }
   },
@@ -708,19 +701,18 @@ module.exports = {
           cantVacunasVencidas: 0, // Agregar aquí la cantidad de vacunas vencidas por lote
         };
 
-          if (loteProvedor.estado === "descartado") {
-            const descartesNacion = resultadosDescarte.filter(
-              (descartes) => (descartes.tipoLote === "LoteNacion")
-            );
-            console.log("DESCARTE NACION");
-            console.log(descartesNacion);
-            descartesNacion.forEach((descarte) => {
-              if (descarte.idLote === loteProvedor.idLote) {
-                nuevoObjeto.cantVacunasDescartadas += descarte.cantVacunas;
-              }
-            });
-          }
-       
+        if (loteProvedor.estado === "descartado") {
+          const descartesNacion = resultadosDescarte.filter(
+            (descartes) => descartes.tipoLote === "LoteNacion"
+          );
+          console.log("DESCARTE NACION");
+          console.log(descartesNacion);
+          descartesNacion.forEach((descarte) => {
+            if (descarte.idLote === loteProvedor.idLote) {
+              nuevoObjeto.cantVacunasDescartadas += descarte.cantVacunas;
+            }
+          });
+        }
 
         depoProvStock.forEach((stockDepoProv) => {
           if (stockDepoProv.idLote === idLote) {
@@ -732,7 +724,7 @@ module.exports = {
             }
             if (stockDepoProv.estado === "descartado") {
               const descartesProv = resultadosDescarte.filter(
-                (descartes) => (descartes.tipoLote === "LoteProvincia")
+                (descartes) => descartes.tipoLote === "LoteProvincia"
               );
               console.log("DESCARTE PROVINCIA");
               console.log(descartesProv);
@@ -755,7 +747,7 @@ module.exports = {
             }
             if (stockCentro.estado === "descartado") {
               const descartesCentro = resultadosDescarte.filter(
-                (descartes) => (descartes.tipoLote === "LoteCentro")
+                (descartes) => descartes.tipoLote === "LoteCentro"
               );
               console.log("DESCARTE Centro");
               console.log(descartesCentro);
@@ -786,6 +778,186 @@ module.exports = {
     } catch (error) {
       console.error("Error al obtener las compras", error);
       res.sendStatus(500);
+    }
+  },
+  editarLote: async (req, res, next) => {
+    const idLote = req.params.id;
+    console.log(idLote);
+    userName = req.session.user.correo;
+    loginlogoutName = "Logout";
+    loginlogoutLink = "/logout";
+
+    try {
+      const vacunas = await Vacuna.findAll({
+        include: [
+          {
+            model: Laboratorio,
+            attributes: ["nombre"],
+          },
+        ],
+      });
+      const loteprovedorAux = await Loteprovedor.findOne({
+        where: { idLote: idLote },
+        include: [
+          {
+            model: Vacuna,
+            attributes: ["tipoVacuna", "nombreComercial", "paisOrigen"],
+            include: [
+              {
+                model: Laboratorio,
+                attributes: ["nombre"],
+              },
+            ],
+          },
+          {
+            model: DepositoNacion,
+            as: "Deposito",
+            include: [
+              {
+                model: Localidad,
+              },
+            ],
+          },
+        ],
+      });
+
+      const loteProvedor = {
+        idLote: loteprovedorAux.idLote,
+        tipoVacuna: loteprovedorAux.Vacuna.tipoVacuna,
+        nombreLaboratorio: loteprovedorAux.Vacuna.Laboratorio.nombre,
+        nombreComercial: loteprovedorAux.Vacuna.nombreComercial,
+        paisOrigen: loteprovedorAux.Vacuna.paisOrigen,
+        fechaFabricacion: loteprovedorAux.fechaFabricacion,
+        fechaVencimiento: loteprovedorAux.fechaVencimiento,
+        estado: loteprovedorAux.estado,
+        deposito: `${loteprovedorAux.Deposito.idDepoNacion} - ${loteprovedorAux.Deposito.Localidad.ciudad}, ${loteprovedorAux.Deposito.Localidad.provincia} (${loteprovedorAux.Deposito.direccion})`,
+        fechaAdquisicion: loteprovedorAux.fechaAdquisicion,
+        idDepoNacion: loteprovedorAux.idDepoNacion,
+        cantVacunas: loteprovedorAux.cantVacunas,
+      };
+      console.log(loteProvedor);
+
+      const resultado = vacunas.map((vacuna) => {
+        return {
+          idVacuna: vacuna.idVacuna,
+          tipoVacuna: vacuna.tipoVacuna,
+          nombreComercial: vacuna.nombreComercial,
+          paisOrigen: vacuna.paisOrigen,
+          nombreLaboratorio: vacuna.Laboratorio.nombre,
+        };
+      });
+
+      const depositos = await DepositoNacion.findAll({
+        include: [
+          {
+            model: Localidad,
+            attributes: ["provincia", "ciudad"],
+          },
+        ],
+      });
+
+      const resultadoDepo = depositos.map((depo) => {
+        return {
+          idDepoNacion: depo.idDepoNacion,
+          provincia: depo.Localidad.provincia,
+          ciudad: depo.Localidad.ciudad,
+          direccion: depo.direccion,
+        };
+      });
+
+      res.render("editarLotes", {
+        userName,
+        loginlogoutLink,
+        loginlogoutName,
+        resultado,
+        resultadoDepo,
+        idLote,
+        loteProvedor,
+      });
+    } catch (error) {
+      console.error("Error al obtener las vacunas", error);
+      res.sendStatus(500);
+    }
+  },
+  editarLotePost: async (req, res, next) => {
+    const idLote = req.params.id;
+    const idVacuna = req.body.idVacuna;
+    const cantVacunas = req.body.cantidadVacunas;
+    const fechaFabricacion = req.body.fechaFabricacion;
+    const fechaVencimiento = req.body.fechaVencimiento;
+    const fechaAdquisicion = req.body.fechaAdquisicion;
+    const idDeposito = req.body.deposito;
+    console.log(req.body);
+    console.log("idLote");
+    console.log(idLote);
+    try {
+      const loteOriginal = await Loteprovedor.findByPk(idLote, {
+        include: [
+          {
+            model: Vacuna,
+            attributes: ["tipoVacuna", "nombreComercial", "paisOrigen"],
+            include: [
+              {
+                model: Laboratorio,
+                attributes: ["nombre"],
+              },
+            ],
+          },
+          {
+            model: DepositoNacion,
+            as: "Deposito",
+          },
+        ],
+      });
+      if (idVacuna !== "") {
+        loteOriginal.idVacuna = idVacuna;
+      }
+      if (fechaFabricacion !== "") {
+        loteOriginal.fechaFabricacion = fechaFabricacion;
+      }
+      if (fechaVencimiento !== "") {
+        loteOriginal.fechaVencimiento = fechaVencimiento;
+      }
+      if (cantVacunas !== "") {
+        loteOriginal.cantVacunas = cantVacunas;
+        if (cantVacunas <= 0) {
+          loteOriginal.estado = "sinStock";
+        }
+      }
+
+      if (idDeposito !== "-" && idDeposito !== "") {
+        loteOriginal.idDepoNacion = idDeposito;
+      }
+
+      if (fechaAdquisicion !== "") {
+        loteOriginal.fechaAdquisicion = fechaAdquisicion;
+        if (loteOriginal.estado !== "descartado") {
+          loteOriginal.estado === "enStock";
+        }
+      }
+      await loteOriginal.save();
+
+      res.render("modCompra", {
+        alert: true,
+        alertTitle: "Modificacion del Lote Correcta",
+        alertMessage: "Se realizo la Modificacion correctamente",
+        alertIcon: "success",
+        showConfirmButton: false,
+        timer: 1200,
+        ruta: "modCompra",
+        resultado: ["a"],
+      });
+    } catch (error) {
+      res.render("modCompra", {
+        alert: true,
+        alertTitle: "ERROR",
+        alertMessage: "No se realizo la Modificacion devido a un error",
+        alertIcon: "error",
+        showConfirmButton: true,
+        timer: false,
+        ruta: "modCompra",
+        resultado: ["a"],
+      });
     }
   },
 };

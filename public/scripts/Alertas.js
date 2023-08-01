@@ -32,6 +32,23 @@ function confirmarEliminacion(event) {
       }
     });
   }
+  function confirmarCreacion(event) {
+    event.preventDefault(); 
+    Swal.fire({
+      title: '¿Estás seguro de crear la vacuna?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, crear',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        event.target.submit();
+      }
+    });
+  }
   function confirmarAgregacionCentro(event) {
     event.preventDefault(); 
     Swal.fire({
