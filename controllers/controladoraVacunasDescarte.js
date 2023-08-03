@@ -504,6 +504,8 @@ module.exports = {
           showConfirmButton: false,
           timer: 1500,
           ruta: "vacunasDescarte",
+          prov:["a"],
+          tipoVac:["a"]
         });
       } else {
         res.render("vacunasDescarte", {
@@ -514,6 +516,8 @@ module.exports = {
           showConfirmButton: true,
           timer: false,
           ruta: "vacunasDescarte",
+          prov:["a"],
+          tipoVac:["a"]
         });
       }
     } catch (error) {}
